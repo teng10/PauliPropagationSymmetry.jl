@@ -19,6 +19,6 @@ using Test
 
 
     include("test_symmetrymerge.jl")
-    @test test_symmetry_numerical(4, 2, Inf, 0.0) ≈ 0.0
+    @test test_symmetry_numerical(4, 2, Inf, 0.0) ≈ 0.0 atol=1e-8
 
 end

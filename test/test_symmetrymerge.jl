@@ -1,4 +1,5 @@
-#TODO(YT): add tests here for symmetricmerge.
+using Random
+
 function test_symmetry_numerical(nq, nl, W, min_abs_coeff)
     """
     Tests for the symmetry merge functions.
