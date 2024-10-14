@@ -37,6 +37,13 @@ export
     containsXorY,
     containsYorZ
 
+include("./Symmetry/Symmetry.jl")
+export
+    theta_periodic_brickwork,
+    shiftbyone,
+    symmetricmerge,
+    symmetrypropagate
+
 include("apply.jl")
 export apply, applynoncummuting  # What should I export here?
 
