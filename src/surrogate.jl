@@ -29,16 +29,21 @@ end
 
 NodePathProperties(coeff) = NodePathProperties(coeff, 0, 0, 0)
 
-function _multiplysign!(coefficient::NodePathProperties, sign)
-    for ii in eachindex(coefficient.coeff.signs)
-        coefficient.coeff.signs[ii] *= sign
-    end
-    return coefficient
+function _multiplysign!(path_property::NodePathProperties, sign)
+    _multiplysign!(path_property.coeff, sign)
+    return path_property
 end
 
-function _multiplysign!(coefficient::EvalEndNode, sign)
-    coefficient.coeff.coefficient *= sign
-    return coefficient
+function _multiplysign!(pauli_node::PauliGateNode, sign)
+    for ii in eachindex(pauli_node.signs)
+        pauli_node.signs[ii] *= sign
+    end
+    return pauli_node
+end
+
+function _multiplysign!(eval_endnode::EvalEndNode, sign)
+    eval_endnode.coefficient *= sign
+    return eval_endnode
 end
 
 function operatortopathdict(op, coefficient=1.0)

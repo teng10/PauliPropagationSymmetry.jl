@@ -93,8 +93,33 @@ function hardwareefficientcircuit(n_qubits, n_layers; topology=nothing)
 
         for pair in topology
             # CNOT or YY gate here
-            # push!(circuit, StaticGate(:CNOT, collect(pair)))  # TODO: CNOT is not fast yet.
             push!(circuit, PauliGate([:Y, :Y], collect(pair)))
+        end
+    end
+
+    return circuit
+end
+
+function efficientsu2circuit(n_qubits, n_layers; topology=nothing)
+    circuit::Vector{Gate} = []
+
+    if isnothing(topology)
+        topology = [(ii, ii + 1) for ii in 1:n_qubits-1]
+    end
+
+    for jj in 1:n_layers
+        for ii in 1:n_qubits
+            # RY
+            push!(circuit, PauliGate([:Y], [ii]))  # TODO: make fast gates
+
+            # RZ
+            push!(circuit, PauliGate([:Z], [ii]))
+
+        end
+
+        for pair in topology
+            # CNOT or YY gate here
+            push!(circuit, CliffordGate(:CNOT, collect(pair)))
         end
     end
 
