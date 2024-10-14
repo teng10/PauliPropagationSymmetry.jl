@@ -20,8 +20,6 @@ function symmetricmerge(paulinodes, merged_paulinodes, nq::Int, symmetryaction)
     Returns:
     The merged nodes with the representative pauli and accumulated coefficients.
     """
-    # Clear the merged_paulinodes dictionary to reuse the memory
-    empty!(merged_paulinodes)
     # Iterate over each `(p, c)` pair in the input dictionary
     for (p, c) in paulinodes
         test_p = p
@@ -39,7 +37,9 @@ function symmetricmerge(paulinodes, merged_paulinodes, nq::Int, symmetryaction)
             merged_paulinodes[p] = c
         end
     end
-    return merged_paulinodes  # Return the merged Dict((pauli, c)) by symmetry
+    # Clear the first dict after merging to reuse the dictionary
+    empty!(paulinodes)
+    return merged_paulinodes, paulinodes
 end
 
 #TODO(YT): move `W` and `min_abs_coeff` to optional kwargs
@@ -61,6 +61,7 @@ function symmetrypropagate(circ, obsint, thetas, nq, nl, W, min_abs_coeff)
     """
     # Initialize the dictionary with the observable
     dnum = Dict(obsint=>1.0)
+    dnum_merged = sizehint!(typeof(dnum)(), length(dnum))
     for l in nl:-1:1
         # Important to start from the last layer because you reverse the circuit
         # Merge by Paulis
@@ -68,8 +69,7 @@ function symmetrypropagate(circ, obsint, thetas, nq, nl, W, min_abs_coeff)
             circ, dnum, thetas[:, l]; max_weight=W, min_abs_coeff=min_abs_coeff
         )
         # Merge by symmetry
-        dnum_copy = deepcopy(dnum)
-        dnum = symmetricmerge(dnum, dnum_copy, nq, shiftbyone)
+        dnum, dnum_merged = symmetricmerge(dnum, dnum_merged, nq, shiftbyone)
     end
     return dnum
 end
