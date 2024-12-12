@@ -6,13 +6,18 @@ include("datatypes.jl")
 export PathProperties, NumericPathProperties
 
 
-include("gates.jl")
+include("Gates/Gates.jl")
 export
     Gate,
     PauliGate,
     FastPauliGate,
-    StaticGate,
-    tofastgates
+    tofastgates,
+    apply,
+    applynoncummuting,
+    CliffordGate,
+    default_clifford_map,
+    reset_clifford_map!,
+    applywithmap
 
 include("circuits.jl")
 export
@@ -20,6 +25,7 @@ export
     get2dtopology,
     get2dstaircasetopology,
     hardwareefficientcircuit,
+    efficientsu2circuit,
     tfitrottercircuit,
     heisenbergtrottercircuit,
     su4ansatz,
@@ -50,7 +56,7 @@ export apply, applynoncummuting  # What should I export here?
 include("truncations.jl")
 
 include("Propagation/Propagation.jl")
-export mergingbfs
+export mergingbfs, applygatetoall!, applygatetoone!
 
 include("stateoverlap.jl")
 export evalagainstzero, evalagainsinitial, zerofilter

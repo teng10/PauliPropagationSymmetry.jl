@@ -30,7 +30,7 @@ end
 function mergingapply(gate, operator_dict::Dict, new_operator_dict::Dict, thetas, param_idx, args...; customtruncationfunction=nothing, min_abs_coeff=0.0, kwargs...)
 
     # param_idx is decremented by one if the gate is a Pauli gate
-    param_idx = applygatetoall!(gate, thetas, param_idx, operator_dict, new_operator_dict)
+    operator_dict, new_operator_dict, param_idx = applygatetoall!(gate, thetas, param_idx, operator_dict, new_operator_dict)
 
     mergeandclear!(operator_dict, new_operator_dict)
 
@@ -43,54 +43,62 @@ function mergingapply(gate, operator_dict::Dict, new_operator_dict::Dict, thetas
     return operator_dict, new_operator_dict, param_idx
 end
 
-
-function mergingapply(gate::StaticGate, old_operator_dict, new_operator_dict, thetas, param_idx, args...; max_weight::Real=Inf, kwargs...)
-    if length(gate.qind) == 1
-        _func! = _singleapply!
-        checkweight = false
-    else
-        _func! = _twoapply!
-        checkweight = true
-    end
-    # TODO: should we even do truncations here given that we do not increase complexity?
-
-    for (oper, coeff) in old_operator_dict
-        oper, coeff = _func!(gate, oper, coeff)
-
-        new_operator_dict[oper] = coeff
-    end
-    empty!(old_operator_dict)
-    return new_operator_dict, old_operator_dict, param_idx
-end
-
 ### APPLY
 
-function applygatetoall!(gate, thetas::AbstractVector, param_idx::Integer, operator_dict, new_operator_dict, args...; kwargs...)
-    theta = 0.0  # This gate seems to not uuse parameters
+function applygatetoall!(gate, thetas, param_idx, operator_dict, new_operator_dict, args...; kwargs...)
+    theta = 0.0  # This gate seems to not use parameters
     for (operator, coeff) in operator_dict
         applygatetoone!(gate, operator, coeff, theta, param_idx, operator_dict, new_operator_dict; kwargs...)  #  max_weight=here_max_weight, 
     end
+    return operator_dict, new_operator_dict, param_idx
 end
 
-function applygatetoall!(gate::PauliGateUnion, thetas::AbstractVector, param_idx::Integer, operator_dict, new_operator_dict, args...; kwargs...)
+function applygatetoall!(gate::PauliGateUnion, thetas, param_idx, operator_dict, new_operator_dict, args...; kwargs...)
     theta = thetas[param_idx]
     for (operator, coeff) in operator_dict
         applygatetoone!(gate, operator, coeff, theta, param_idx, operator_dict, new_operator_dict; kwargs...)  #  max_weight=here_max_weight, 
     end
-    return param_idx - 1  # decrement parameter index by one
+    return operator_dict, new_operator_dict, param_idx - 1  # decrement parameter index by one
 end
 
-@inline function applygatetoone!(gate::PauliGateUnion, oper, old_coeff, theta, param_idx, operator_dict, new_operator_dict, args...; kwargs...)
+function applygatetoall!(gate::CliffordGate, thetas, param_idx, operator_dict, new_operator_dict, args...; max_weight::Real=Inf, kwargs...)
 
-    if commutes(gate, oper)
+    map_array = default_clifford_map[gate.symbol]
+
+    for (oper, coeff) in operator_dict
+        applygatetoone!(gate, oper, coeff, thetas, param_idx, map_array, operator_dict, new_operator_dict; kwargs...)
+    end
+    empty!(operator_dict)
+    return new_operator_dict, operator_dict, param_idx
+end
+
+
+@inline function applygatetoone!(gate::PauliGateUnion, operator, coefficient, theta, param_idx, operator_dict, new_operator_dict, args...; kwargs...)
+
+    if commutes(gate, operator)
         return operator_dict, new_operator_dict
     end
 
-    coeff1 = applycos(old_coeff, theta; param_idx=param_idx)
-    sign, new_oper = getnewoperator(gate, oper)
-    coeff2 = applysin(old_coeff, theta; sign=sign, param_idx=param_idx)
-    operator_dict[oper] = coeff1
+    coeff1 = applycos(coefficient, theta; param_idx=param_idx)
+    sign, new_oper = getnewoperator(gate, operator)
+    coeff2 = applysin(coefficient, theta; sign=sign, param_idx=param_idx)
+    operator_dict[operator] = coeff1
     new_operator_dict[new_oper] = coeff2
+
+    return
+end
+
+@inline function applygatetoone!(gate::CliffordGate, operator, coefficient, theta, param_idx, map_array, operator_dict, new_operator_dict, args...; kwargs...)
+    # TODO: use more of the apply function here. This requires rewriting those.
+    operator = copy(operator)
+    qinds = gate.qinds
+    lookup_op = _extractlookupop(operator, qinds)
+    sign, new_op = map_array[lookup_op+1]  # +1 because Julia is 1-indexed and lookup_op is 0-indexed
+    operator = _insertnewop!(operator, new_op, qinds)
+
+    coefficient = _multiplysign!(coefficient, sign)
+
+    new_operator_dict[operator] = coefficient
 
     return
 end
