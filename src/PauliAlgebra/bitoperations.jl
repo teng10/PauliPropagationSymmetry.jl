@@ -8,9 +8,14 @@ function getinttype(nqubits::Integer)
     nbits = 2 * nqubits
 
 
-    # arbitrary large upper limit for the number of bits to be checked
-    # while-loops are scary
-    for trial_bits in nbits:10_000_000
+    # just over 8.3 Million is the largest integer type we can generate
+    for trial_bits in nbits:2:8_300_000
+
+        # we can check if the number of bits is divisible by 8
+        # othervise we know it cannot be defined
+        if !(trial_bits % 8 == 0)
+            continue
+        end
 
         # special clauses for inbuilt integer types
         if trial_bits == 8
@@ -22,14 +27,20 @@ function getinttype(nqubits::Integer)
         elseif trial_bits == 64
             return UInt64
         end
-        # stop at 64 bits because I am suspicios of UInt128
+        # stop at 64 bits because I am suspicious of UInt128
+
+        trial_inttype_expr = Symbol("UInt", trial_bits)
+        # check if the integer type is defined to avoid overrides
+        if isdefined(PauliPropagation, trial_inttype_expr)
+            return eval(trial_inttype_expr)
+        end
 
         # defining the integer type can fail for bit numbers that are odd not not natively supported
         # just try the next number if that happens
         try
             @eval @define_integers $trial_bits
             # return the newly defined unsigned integer type
-            return eval(Symbol("UInt", trial_bits))
+            return eval(trial_inttype_expr)
         catch ErrorException
             continue
         end
