@@ -4,63 +4,48 @@
 Function to return the smallest integer type that can hold nqubits for memory and speed.
 """
 function getinttype(nqubits::Integer)
-    # TODO: This function is type unstable
-
     # we need 2 bits per qubit
     nbits = 2 * nqubits
 
-    # select correct UInt type
-    if nbits <= 8
-        inttype = UInt8
-    elseif nbits <= 16
-        inttype = UInt16
-    elseif nbits <= 32
-        inttype = UInt32
-    elseif nbits <= 64
-        inttype = UInt64
-    elseif nbits <= 128
-        inttype = UInt128
-    elseif nbits <= 256    # we have a custom hash function for these
-        inttype = UInt256
-    elseif nbits <= 2_048
-        inttype = BigInt  # TODO: get larger Integer types that aren't BigInt
-    else
-        throw("The maximum number of qubits supported is currently 1024.")
+
+    # arbitrary large upper limit for the number of bits to be checked
+    # while-loops are scary
+    for trial_bits in nbits:10_000_000
+
+        # special clauses for inbuilt integer types
+        if trial_bits == 8
+            return UInt8
+        elseif trial_bits == 16
+            return UInt16
+        elseif trial_bits == 32
+            return UInt32
+        elseif trial_bits == 64
+            return UInt64
+        end
+        # stop at 64 bits because I am suspicios of UInt128
+
+        # defining the integer type can fail for bit numbers that are odd not not natively supported
+        # just try the next number if that happens
+        try
+            @eval @define_integers $trial_bits
+            # return the newly defined unsigned integer type
+            return eval(Symbol("UInt", trial_bits))
+        catch ErrorException
+            continue
+        end
     end
 
-    return inttype
+    # if we reach here, we have failed to define the integer type
+    # Falling back to BigInt
+    @warn "Failed to define integer types for $nqubits qubits. Falling back to BigInt."
+    return BigInt
 end
 
-import Base: hash, hash_uint
-"""
-Re-defining the hash of `BitIntegers.UInt256` via type piracy.
-"""
-Base.hash(x::UInt256) = hash_uint(x)
 
-"""
-    hash_uint(x::UInt256)
+# A priated hash function for unsigned integers from BitIntegers.jl
+# This hashes for the value of the integer and is a lot faster than the default hash function.
+Base.hash(v::BitIntegers.AbstractBitUnsigned, h::UInt) = Base.hash_integer(v, h)
 
-Custom hash-function for `BitIntegers.UInt256`. 
-It appears faster in practice than the default hash for this type, but it is not fully tested.
-It certainly allocates no memory. 
-"""
-function hash_uint(x::UInt256)
-    mask::UInt64 = 0xFFFFFFFFFFFFFFFF
-    # hash each 64-bit segment using Julia's inbuilt hashes
-    a::UInt64 = hash_uint(UInt64((x >> 0) & mask))
-    b::UInt64 = hash_uint(UInt64((x >> 64) & mask))
-    c::UInt64 = hash_uint(UInt64((x >> 128) & mask))
-    d::UInt64 = hash_uint(UInt64((x >> 192) & mask))
-    # mess it up a little using this ChatGPT hallucination
-    h::UInt64 = 0
-    h = a ⊻ ((b << 21) | (b >> (64 - 21)))
-    h = h ⊻ ((c << 42) | (c >> (64 - 42)))
-    h = h ⊻ ((d << 63) | (d >> (64 - 63)))
-    h = (h * 0x9e3779b185ebca87) ⊻ (h >> 32)
-    h = (h * 0xc2b2ae3d27d4eb4f) ⊻ (h >> 29)
-    h = (h * 0x165667b19e3779f9) ⊻ (h >> 32)
-    return h
-end
 
 """
     _countbitweight(pstr::PauliStringType)
