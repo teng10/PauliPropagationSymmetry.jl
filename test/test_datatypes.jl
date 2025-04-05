@@ -80,13 +80,15 @@ end
         @test getpauli(pstr.term, qind) == symboltoint(symbols[ii])
     end
     @test getpauli(pstr.term, qinds) == symboltoint(symbols)
+    @test paulitype(pstr) == getinttype(nq) == UInt16
 
 
     nq = 17
     psum = PauliSum(nq)
     @test length(psum) == length(psum.terms) == 0
     @test coefftype(psum) == Float64
-    @test paulitype(psum) == getinttype(nq) == UInt64
+    @test paulitype(psum) == getinttype(nq)
+    @test paulitype(psum) == PauliPropagation.UInt40
     println(psum)
 
 
