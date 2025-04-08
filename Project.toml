@@ -1,18 +1,20 @@
 name = "PauliPropagation"
 uuid = "293282d5-3c99-4fb6-92d0-fd3280a19750"
 authors = ["Manuel S. Rudolph"]
-version = "1.0.0-DEV"
+version = "0.2.3"
 
 [deps]
 BitIntegers = "c3b6d118-76ef-56ca-8cc7-ebb389d030a1"
 Bits = "1654ce90-6ed3-553a-957f-9452c3a40996"
-Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
-StaticLint = "b3cc710f-9c33-5bdb-a03d-a94903873e97"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
+BitIntegers = "0.3"
+Bits = "0.2"
+StatsBase = "0.34"
 julia = "1.6.7"
 
 [extras]

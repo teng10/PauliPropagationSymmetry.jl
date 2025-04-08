@@ -1,3 +1,5 @@
-include("mergingbfs.jl")
+# generics.jl contains the core functionality of the `propagation` function.
+include("generics.jl")
 
-# TODO: dfs
+# specializations.jl contains specialized implementations of lower level propagation functions for specific gates. 
+include("specializations.jl")

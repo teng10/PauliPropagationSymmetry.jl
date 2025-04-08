@@ -1,47 +1,107 @@
 module PauliPropagation
 
 using Base.Threads
+using LinearAlgebra
 
-include("datatypes.jl")
-export PathProperties, NumericPathProperties
+include("./PauliAlgebra/PauliAlgebra.jl")
+export
+    PauliStringType,
+    PauliType,
+    PauliSum,
+    PauliString,
+    paulis,
+    coefficients,
+    norm,
+    paulitype,
+    coefftype,
+    numcoefftype,
+    getcoeff,
+    topaulistrings,
+    mult!,
+    add!,
+    set!,
+    mult!,
+    empty!,
+    identitypauli,
+    identitylike,
+    inttosymbol,
+    symboltoint,
+    inttostring,
+    ispauli,
+    getpauli,
+    setpauli,
+    show,
+    countweight,
+    countxy,
+    countyz,
+    containsXorY,
+    containsYorZ,
+    pauliprod,
+    commutes,
+    commutator,
+    getinttype
 
+include("PauliTransferMatrix/PauliTransferMatrix.jl")
+export
+    calculateptm,
+    totransfermap
 
 include("Gates/Gates.jl")
 export
     Gate,
-    PauliGate,
-    FastPauliGate,
-    tofastgates,
-    apply,
-    applynoncummuting,
+    ParametrizedGate,
+    StaticGate,
+    PauliRotation,
+    MaskedPauliRotation,
     CliffordGate,
-    default_clifford_map,
+    clifford_map,
+    transposecliffordmap,
     reset_clifford_map!,
-    applywithmap
+    createcliffordmap,
+    composecliffordmaps,
+    ParametrizedNoiseChannel,
+    PauliNoise,
+    DepolarizingNoise,
+    DephasingNoise,
+    AmplitudeDampingNoise,
+    PauliXNoise,
+    PauliYNoise,
+    PauliZNoise,
+    FrozenGate,
+    freeze,
+    TGate,
+    TransferMapGate,
+    tomatrix
 
-include("circuits.jl")
+include("Circuits/Circuits.jl")
 export
+    countparameters,
+    getparameterindices,
     bricklayertopology,
-    get2dtopology,
-    get2dstaircasetopology,
+    staircasetopology,
+    rectangletopology,
+    staircasetopology2d,
+    ibmeagletopology,
     hardwareefficientcircuit,
     efficientsu2circuit,
     tfitrottercircuit,
+    tiltedtfitrottercircuit,
     heisenbergtrottercircuit,
-    su4ansatz,
-    qcnnansatz,
-    appendSU4!
+    su4circuit,
+    qcnncircuit,
+    appendSU4!,
+    rxlayer!,
+    rylayer!,
+    rzlayer!,
+    rxxlayer!,
+    ryylayer!,
+    rzzlayer!
 
-include("./PauliAlgebra/PauliAlgebra.jl")
+include("PathProperties/PathProperties.jl")
 export
-    inttosymbol,
-    symboltoint,
-    inttostring,
-    getelement,
-    setelement!,
-    show,
-    containsXorY,
-    containsYorZ
+    PathProperties,
+    PauliFreqTracker,
+    wrapcoefficients
 
 include("./Symmetry/Symmetry.jl")
 export
@@ -54,14 +114,53 @@ include("apply.jl")
 export apply, applynoncummuting  # What should I export here?
 
 include("truncations.jl")
+export
+    truncateweight,
+    truncatemincoeff,
+    truncatefrequency,
+    truncatesins,
+    truncatedampingcoeff
 
 include("Propagation/Propagation.jl")
-export mergingbfs, applygatetoall!, applygatetoone!
+export
+    propagate,
+    propagate!,
+    applymergetruncate!,
+    applytoall!,
+    apply,
+    applyandadd!,
+    mergeandempty!,
+    merge
 
 include("stateoverlap.jl")
-export evalagainstzero, evalagainsinitial, zerofilter
+export
+    overlapbyorthogonality,
+    overlapwithzero,
+    overlapwithplus,
+    overlapwithones,
+    orthogonaltozero,
+    orthogonaltoplus,
+    overlapwithcomputational,
+    overlapwithpaulisum,
+    overlapwithmaxmixed,
+    filter,
+    filter!,
+    zerofilter,
+    zerofilter!,
+    plusfilter,
+    plusfilter!,
+    evaluateagainstdict,
+    tonumber
 
-include("surrogate.jl")
-export operatortopathdict, PauliGateNode, gettraceevalorder, expectation, resetnodes
+include("numericalcertificates.jl")
+export
+    estimatemse,
+    estimatemse!
+
+include("Surrogate/Surrogate.jl")
+export
+    NodePathProperties,
+    evaluate!,
+    reset!
 
 end
