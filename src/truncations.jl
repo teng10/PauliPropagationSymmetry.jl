@@ -65,7 +65,7 @@ end
 
 
 # Return `true` if `abs(coeff) < min_abs_coeff`. 
-function truncatemincoeff(coeff::Real, min_abs_coeff::Real)
+function truncatemincoeff(coeff::Number, min_abs_coeff::Real)
     return abs(coeff) < min_abs_coeff
 end
 
