@@ -308,7 +308,7 @@ end
 
 # anything else is just directly returned
 # don't know what do do with it, and we didn't automatically convert it before
-function PP._check_unwrap_from_paulifreqtracker(T::Type, obj)
+function _check_unwrap_from_paulifreqtracker(T::Type, obj)
     return obj
 end
 
