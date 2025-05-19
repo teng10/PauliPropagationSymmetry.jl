@@ -269,10 +269,11 @@ end
 ## Further utilities here
 
 # wrap the coefficients in `PauliFreqTracker` if max_freq or max_sins are used
-function _check_wrapping_into_paulifreqtracker(psum, max_freq, max_sins)
+function _check_wrapping_into_paulifreqtracker(psum::PauliSum, max_freq, max_sins)
 
-    # if max_freq or max_sins are used, we wrap the coefficients in `PauliFreqTracker`
-    if !(coefftype(psum) <: PathProperties) && (max_freq != Inf || max_sins != Inf)
+    # if max_freq or max_sins are used, and the coefficients are not PathProperties (could be custom)
+    # then we wrap the coefficients in `PauliFreqTracker`
+    if (max_freq != Inf | max_sins != Inf) && !(coefftype(psum) <: PathProperties)
         psum = wrapcoefficients(psum, PauliFreqTracker)
         return psum
     end
@@ -280,6 +281,11 @@ function _check_wrapping_into_paulifreqtracker(psum, max_freq, max_sins)
     # otherwise just return the original psum
     return psum
 
+end
+
+# if the psum is not of type `PauliSum` then we don't touch it 
+function _check_wrapping_into_paulifreqtracker(psum, max_freq, max_sins)
+    return psum
 end
 
 # given a coefficient type, make sure that the PauliSum is has the same coefficient type
@@ -298,6 +304,12 @@ function _check_unwrap_from_paulifreqtracker(::Type{CT}, psum::PauliSum{TT,PFT})
         psum = unwrapcoefficients(psum)
     end
     return psum
+end
+
+# anything else is just directly returned
+# don't know what do do with it, and we didn't automatically convert it before
+function PP._check_unwrap_from_paulifreqtracker(T::Type, obj)
+    return obj
 end
 
 # check that max_freq and max_sins are only used a PathProperties type tracking them
