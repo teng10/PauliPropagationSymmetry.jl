@@ -29,7 +29,12 @@ using Documenter, PauliPropagation
 
 # Generate doc HTML files, saved to build/
 makedocs(
-    sitename="Pauli Propagation",
+    # Add favicon.ico
+    format=Documenter.HTML(
+        assets=[
+            "assets/favicon.ico",
+        ],
+    ), sitename="PauliPropagation.jl",
 
     # determines site layout
     pages=[
@@ -40,25 +45,26 @@ makedocs(
         # the README.md contents into Documenter.jl 
         # pages. We manually override its name in the
         # left navbar to be "Introduction"
-        "Introduction" => "index.md",
+        "Home" => "index.md",
 
         # these other 'top-level' files DO exist, and
         # have names inferred from their section names
-        "installation.md",
-        "tutorials.md",
+
+        # TODO: add this back once we know how to embed the Jupyter notebooks
+        # "tutorials.md",
 
         # these 'lower-level' files also exist, and will
         # be grouped under an 'API' section in the navbar
         "API" => [
-            "api/Circuits.md",
-            "api/Gates.md",
-            "api/PathProperties.md",
             "api/PauliAlgebra.md",
-            "api/PauliTransferMatrix.md",
+            "api/Gates.md",
+            "api/Circuits.md",
             "api/Propagation.md",
+            "api/StateOverlap.md",
+            "api/PathProperties.md",
+            "api/PauliTransferMatrix.md",
             "api/Surrogate.md",
             "api/NumericalCertificates.md",
-            "api/StateOverlap.md",
             "api/Truncations.md"
         ]
     ]
