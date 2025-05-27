@@ -8,16 +8,17 @@
 # This behavior can be changed but then more methods need to be defined.
 ##
 ###
-
+import Base: *
+import Base: +
+import Base: float
 
 """
 Abstract type for wrapping coefficients and record custom path properties
 """
 abstract type PathProperties end
 
-"""
-Pretty print for PathProperties
-"""
+
+# Pretty print for PathProperties
 function Base.show(io::IO, pth::PProp) where {PProp<:PathProperties}
     print(io, "$PProp(")
     for (i, field) in enumerate(fieldnames(PProp))
@@ -30,11 +31,9 @@ function Base.show(io::IO, pth::PProp) where {PProp<:PathProperties}
 
 end
 
-import Base: *
-"""
-Multiplication of the `coeff` field in a `PathProperties` object with a number.
-Requires that the `PathProperties` object has a `coeff` field defined which will be multiplied.
-"""
+
+# Multiplication of the `coeff` field in a `PathProperties` object with a number.
+# Requires that the `PathProperties` object has a `coeff` field defined which will be multiplied.
 function *(path::PProp, val::Number) where {PProp<:PathProperties}
     # multiply the coefficient on the `coeff` field with the value and leave the rest unchanged.
     fields = fieldnames(PProp)
@@ -54,20 +53,18 @@ function *(path::PProp, val::Number) where {PProp<:PathProperties}
     return PProp((updateval(getfield(path, fname), fname) for fname in fields)...)
 end
 
-"""
-Multiplication of a `PathProperties` object with a number.
-Requires that the `PathProperties` object has a `coeff` field defined which will be multiplied.
-"""
+
+# Multiplication of a `PathProperties` object with a number.
+# Requires that the `PathProperties` object has a `coeff` field defined which will be multiplied.
 function *(val::Number, path::PProp) where {PProp<:PathProperties}
     return path * val
 end
 
-import Base: +
-"""
-Addition of two `PathProperties` objects of equal concrete type.
-Adds the `coeff` fields and takes the minimum of the other fields.
-Requires that the `PathProperties` object has a `coeff` field defined.
-"""
+
+
+# Addition of two `PathProperties` objects of equal concrete type.
+# Adds the `coeff` fields and takes the minimum of the other fields.
+# Requires that the `PathProperties` object has a `coeff` field defined.
 function +(path1::PProp, path2::PProp) where {PProp<:PathProperties}
     fields = fieldnames(PProp)
 
@@ -87,7 +84,7 @@ function +(path1::PProp, path2::PProp) where {PProp<:PathProperties}
     return PProp((updateval(getfield(path1, fname), getfield(path2, fname), fname) for fname in fields)...)
 end
 
-import Base: float
+
 """
     float(path::PathProperties)
 
@@ -169,4 +166,40 @@ function wrapcoefficients(psum::PauliSum, ::Type{PProp}) where {PProp<:PathPrope
     end
 
     return PauliSum(psum.nqubits, Dict(pstr => PProp(coeff) for (pstr, coeff) in psum.terms))
+end
+
+
+"""
+    unwrapcoefficients(pstr::PauliString)
+
+Unwrap the coefficient of a `PauliString` from a `PathProperties` type.
+Returns a `PauliString` with the `coeff` field of the `PathProperties` object.
+"""
+function unwrapcoefficients(pstr::PauliString{TT,CT}) where {TT,CT}
+    if !(CT <: PathProperties)
+        throw("The PauliString does not have a `PathProperties` coefficient type.")
+    end
+
+    # return the PauliString with the numerical coefficient
+    return PauliString(pstr.nqubits, pstr.term, pstr.coeff.coeff)
+end
+
+"""
+    unwrapcoefficients(psum::PauliSum)
+
+Unwrap the coefficients of a `PauliSum` from a `PathProperties` type.
+Returns a `PauliSum` with coefficients being the `coeff` field of the `PathProperties` objects.
+"""
+function unwrapcoefficients(psum::PauliSum{TT,CT}) where {TT,CT}
+    if !(CT <: PathProperties)
+        throw("The PauliSum does not have a `PathProperties` coefficient type.")
+    end
+
+    # TODO: should this perhaps not error if coefficients are not PathProperties?
+    # could simply other parts of the code
+
+    # get the numerical coefficients
+    terms = Dict(pstr => coeff.coeff for (pstr, coeff) in psum)
+
+    return PauliSum(psum.nqubits, terms)
 end

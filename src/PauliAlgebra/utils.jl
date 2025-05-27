@@ -1,31 +1,21 @@
 # Defines mapping of integers 0, 1, 2, 3 to symbols :I, :X, :Y, :Z
-const pauli_symbols::Vector{Symbol} = [:I, :X, :Y, :Z]
+const pauli_symbols = (:I, :X, :Y, :Z)
 
 
-"""
-    identitypauli(nqubits::Integer)
-
-Returns the integer representation of the identity Pauli string acting on `nqubits` qubits.
-The type of will be the smallest integer type that can hold the number of qubits, as given by `getinttype(nqubits)`.
-"""
+# Returns the integer representation of the identity Pauli string acting on `nqubits` qubits.
+# The type of will be the smallest integer type that can hold the number of qubits, as given by `getinttype(nqubits)`.
 function identitypauli(nqubits::Integer)
     return identitypauli(getinttype(nqubits))
 end
 
-"""
-    identitypauli(TermType<:PauliStringType)
 
-Returns the integer representation of the identity Pauli string with type `TermType`.
-"""
+# Returns the integer representation of the identity Pauli string with type `PauliStringType`.
 function identitypauli(::Type{TT}) where {TT<:PauliStringType}
     return zero(TT)
 end
 
-"""
-    identitylike(pstr::PauliStringType)
 
-Returns an integer Pauli string of the same type as `pstr` with all Paulis set to identity.
-"""
+# Returns an integer Pauli string of the same type as `pstr` with all Paulis set to identity.
 function identitylike(::TT) where {TT<:PauliStringType}
     return identitypauli(TT)
 end
@@ -36,13 +26,10 @@ end
 
 Maps a symbol or a vector of symbols `pstr` to an integer Pauli string.
 
-# Example
+Example:
 ```
 symboltoint([:X, :I])
-
-# output
-
-0x01
+>>> 0x01
 ```
 """
 function symboltoint(pstr)
@@ -91,9 +78,9 @@ function symboltoint(nqubits::Integer, pauli::Symbol, qind::Integer)
 end
 
 """
-    symboltoint(::TermType, pauli::Symbol, qind::Integer)
+    symboltoint(::PauliStringType, pauli::Symbol, qind::Integer)
 
-Maps a single symbol `pauli` acting on the index `qind` to an integer Pauli string with type `TermType`.
+Maps a single symbol `pauli` acting on the index `qind` to an integer Pauli string with type `PauliStringType`.
 Other sites are set to the identity.
 """
 function symboltoint(::Type{TT}, pauli::Symbol, qind::Integer) where {TT<:PauliStringType}
@@ -103,9 +90,9 @@ function symboltoint(::Type{TT}, pauli::Symbol, qind::Integer) where {TT<:PauliS
 end
 
 """
-    symboltoint(::TermType, paulis, qinds)
+    symboltoint(::PauliStringType, paulis, qinds)
 
-Maps a vector of symbols `paulis` acting on the indices `qinds` to an integer Pauli string with type `TermType`.
+Maps a vector of symbols `paulis` acting on the indices `qinds` to an integer Pauli string with type `PauliStringType`.
 Other sites are set to the identity.
 `qinds` can be any iterable.
 """
@@ -178,11 +165,8 @@ end
 
 ## get and set functions
 
-"""
-    getpauli(pstr::PauliStringType, index::Integer)
 
-Gets the Pauli on index `index` of an integer Pauli string.
-"""
+# Gets the Pauli on index `index` of an integer Pauli string.
 function getpauli(pstr::PauliStringType, index::Integer)
     return _getpaulibits(pstr, index)
 end
@@ -266,12 +250,12 @@ end
     inttostring(pstr::PauliType, nqubits::Integer)
 
 Returns a string representation of an integer Pauli string `pstr` on `nqubits` qubits.
+The characters of the string from left to right are the Paulis on the qubits from 1 to `nqubits`.
 """
 inttostring(pstr::PauliType, nqubits::Integer) = prod("$(inttosymbol(getpauli(pstr, ii)))" for ii in 1:nqubits)
 
-"""
-Pretty string function.
-"""
+
+# Pretty string function.
 function _getprettystr(psum::Dict, nqubits::Int; max_lines=20)
     # TODO: rework this pretty print to not build the string but keep streaming via show(io, ...)
     str = ""

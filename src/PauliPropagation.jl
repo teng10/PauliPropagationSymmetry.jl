@@ -22,6 +22,7 @@ export
     set!,
     mult!,
     empty!,
+    similar,
     identitypauli,
     identitylike,
     inttosymbol,
@@ -101,14 +102,11 @@ include("PathProperties/PathProperties.jl")
 export
     PathProperties,
     PauliFreqTracker,
-    wrapcoefficients
+    wrapcoefficients,
+    unwrapcoefficients
 
 include("truncations.jl")
 export
-    truncateweight,
-    truncatemincoeff,
-    truncatefrequency,
-    truncatesins,
     truncatedampingcoeff
 
 include("Propagation/Propagation.jl")
@@ -128,11 +126,10 @@ export
     overlapwithzero,
     overlapwithplus,
     overlapwithones,
-    orthogonaltozero,
-    orthogonaltoplus,
     overlapwithcomputational,
-    overlapwithpaulisum,
     overlapwithmaxmixed,
+    overlapwithpaulisum,
+    scalarproduct,
     filter,
     filter!,
     zerofilter,
