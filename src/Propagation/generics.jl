@@ -273,7 +273,7 @@ function _check_wrapping_into_paulifreqtracker(psum::PauliSum, max_freq, max_sin
 
     # if max_freq or max_sins are used, and the coefficients are not PathProperties (could be custom)
     # then we wrap the coefficients in `PauliFreqTracker`
-    if (max_freq != Inf | max_sins != Inf) && !(coefftype(psum) <: PathProperties)
+    if ((max_freq != Inf) | (max_sins != Inf)) & !(coefftype(psum) <: PathProperties)
         psum = wrapcoefficients(psum, PauliFreqTracker)
         return psum
     end
@@ -300,7 +300,7 @@ function _check_unwrap_from_paulifreqtracker(::Type{CT}, psum::PauliSum{TT,PFT})
     # we need to unwrap the coefficients
 
     # if the original coefficient type (CT) is not PauliFreqTracker (PFT), then unwrap
-    if !(CT == PFT)
+    if CT != PFT
         psum = unwrapcoefficients(psum)
     end
     return psum
@@ -317,7 +317,7 @@ function _checkfreqandsinfields(psum, max_freq, max_sins)
 
     CT = coefftype(psum)
 
-    if !(CT <: PathProperties) && (max_freq != Inf || max_sins != Inf)
+    if !(CT <: PathProperties) & ((max_freq != Inf) | (max_sins != Inf))
         throw(ArgumentError(
             "The `max_freq` and `max_sins` truncations can only be used with coefficients wrapped in `PathProperties` types.\n" *
             "Consider using `wrapcoefficients() with the `PauliFreqTracker` type" *
@@ -325,13 +325,13 @@ function _checkfreqandsinfields(psum, max_freq, max_sins)
         )
     end
 
-    if max_freq != Inf && !hasfield(CT, :freq)
+    if (max_freq != Inf) & (!hasfield(CT, :freq))
         throw(ArgumentError(
             "The `max_freq` truncation is used, but the PathProperties type $CT does not have a `freq` field.")
         )
     end
 
-    if max_sins != Inf && !hasfield(CT, :nsins)
+    if (max_sins != Inf) & (!hasfield(CT, :nsins))
         throw(ArgumentError(
             "The `max_sins` truncation is used, but the PathProperties type $CT does not have a `nsins` field.")
         )
