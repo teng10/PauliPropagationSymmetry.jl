@@ -1,6 +1,6 @@
-| **Documentation**|
-|:----------------:|
-|[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://msrudolph.github.io/PauliPropagation.jl)[![](https://img.shields.io/badge/docs-dev-green.svg)](https://msrudolph.github.io/PauliPropagation.jl/dev)|
+| **Documentation**| **Paper**|
+|:----------------:|:--------:|
+|[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://msrudolph.github.io/PauliPropagation.jl/stable/)[![](https://img.shields.io/badge/docs-dev-green.svg)](https://msrudolph.github.io/PauliPropagation.jl/dev/)|[![arXiv](https://img.shields.io/badge/arXiv-2505.21606-b31b1b.svg)](https://arxiv.org/abs/2505.21606)|
 
 # PauliPropagation.jl
 `PauliPropagation.jl` is a Julia package for simulating Pauli propagation in quantum circuits and systems. It focuses on simulating the evolution of observables expressed in the Pauli basis under the action of unitary gates and non-unitary channels in a quantum circuit.
@@ -10,6 +10,16 @@ Unlike traditional simulators which simulate a circuit $\mathcal{E}$ evolving th
 Pauli propagation is related to the so-called (extended) stabilizer simulation, but is fundamentally different from, for example, tensor networks. It offers a distinct approach that can handle different regimes of quantum dynamics.
 
 Implemented in Julia, `PauliPropagation.jl` combines high-performance computation (using features such as multiple dispatch) with an accessible and high-level interface.  
+
+## UnitaryHACK 2025 - May 28th to June 11th
+From **May 28th to June 11th** we are participating in the 5th edition of the hackathon. Solve [these GitHub Issues](https://unitaryhack.dev/projects/pauli-propagation/) and collect real money bounties &#128176;&#128176;&#128176;!
+
+The relevant Issues are:
+- For $200: https://github.com/MSRudolph/PauliPropagation.jl/issues/88
+- For $150: https://github.com/MSRudolph/PauliPropagation.jl/issues/86
+- For $100: https://github.com/MSRudolph/PauliPropagation.jl/issues/87
+- For $50: https://github.com/MSRudolph/PauliPropagation.jl/issues/89
+
 
 ## Installation
 
@@ -173,7 +183,18 @@ This package is the derivative of ongoing work at the Quantum Information and Co
 
 For more specific code issues, bug fixes, etc. please open a [GitHub issue](https://github.com/MSRudolph/PauliPropagation.jl/issues).
 
-If you are publishing research using `PauliPropagation.jl`, please cite this library and our upcoming paper presenting it (coming soon(ish)).
+## Citation
+
+If you are publishing research using `PauliPropagation.jl`, please cite this library and our paper: 
+```
+@article{rudolph2025pauli,
+  title={Pauli Propagation: A Computational Framework for Simulating Quantum Systems},
+  author={Rudolph, Manuel S and Jones, Tyson and Teng, Yanting and Angrisani, Armando and Holmes, Zoe},
+  journal={arXiv preprint arXiv:2501.13101},
+  year={2025},
+  url={https://arxiv.org/abs/2501.13101}
+}
+```
 
 ## Related publications
 Some of the developers of this package are co-authors in the following papers using Pauli propagation and (at least parts of) this code:
