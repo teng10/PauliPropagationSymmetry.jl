@@ -153,4 +153,10 @@ export
     evaluate!,
     reset!
 
+include("Symmetry/Symmetry.jl")
+export
+    greedysymmetricshift,
+    fullsymmetricshift, 
+    shiftup,
+    fullmergeshiftup
 end
