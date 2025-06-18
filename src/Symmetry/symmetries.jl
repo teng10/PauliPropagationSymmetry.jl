@@ -27,6 +27,11 @@ end
 
 """
     Greedy symmetric shift and merge of a PauliSum.
+
+Args:
+    psum (PauliSum): The PauliSum to perform greedy symmetric shift on.
+Returns:
+    shifted_psum (PauliSum): The merged PauliSum.
 """
 function greedysymmetricshift(psum::PauliSum)
     shifted_psum = PauliPropagation.similar(psum)
@@ -177,7 +182,7 @@ function shiftupandadd!(
 end
 
 """
-    fullmergeshiftup(psum::PauliSum, transform)
+    fullshiftup2d(psum::PauliSum, transform)
     Merges a PauliSum by shifting all pstrs up in a 2D grid of Paulis.
 
 Args:
@@ -186,7 +191,7 @@ Args:
 Returns:
     shifted_psum (PauliSum): The fully merged PauliSum.    
 """
-function fullmergeshiftup(psum::PauliSum, nx, ny)
+function fullshiftup2d(psum::PauliSum, nx, ny)
     shifted_psum = PauliPropagation.similar(psum)
 
     # Check number of qubits

@@ -158,5 +158,5 @@ export
     greedysymmetricshift,
     fullsymmetricshift, 
     shiftup,
-    fullmergeshiftup
+    fullshiftup2d
 end

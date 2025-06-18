@@ -71,6 +71,6 @@ end
     add!(expected_psum, [:X, :Z], [2, 5], 1.5)
 
     # test merging with shiftup
-    @test fullmergeshiftup(p_init, nx, ny) == expected_psum
+    @test fullshiftup2d(p_init, nx, ny) == expected_psum
 
 end
