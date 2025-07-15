@@ -8,8 +8,10 @@ using PauliPropagation
 
 
 """
-    Greedy symmetric shift of a pstr.
-    Shifts the pstr to the right until the first non-zero Pauli is found.
+    greedysymmetricshift(pstr::PauliStringType)
+
+Shift a `pstr` to the right until the first non-I Pauli, used for a system with
+translational symmetry.
 """        
 function greedysymmetricshift(pstr::PauliStringType)
     if pstr == 0
@@ -17,7 +19,6 @@ function greedysymmetricshift(pstr::PauliStringType)
     end
 
     # shift until the first non-zero Pauli
-    # this is non-exhaustive, but it is fast
     while getpauli(pstr, 1) == 0
         pstr = PauliPropagation._paulishiftright(pstr)
     end
@@ -26,45 +27,37 @@ function greedysymmetricshift(pstr::PauliStringType)
 end
 
 """
-    Greedy symmetric shift and merge of a PauliSum.
+    greedysymmetricshift(psum::PauliSum)
 
-Args:
-    psum (PauliSum): The PauliSum to perform greedy symmetric shift on.
-Returns:
-    shifted_psum (PauliSum): The merged PauliSum.
+Shift and merge of a `psum` in a system with translational symmetry.
 """
 function greedysymmetricshift(psum::PauliSum)
     shifted_psum = PauliPropagation.similar(psum)
+
     for (pstr, coeff) in psum
         pstr = greedysymmetricshift(pstr)
         add!(shifted_psum, pstr, coeff)
     end
+
     return shifted_psum
 end
 
 
 """
-    Merges a pstr to an existing psum in-place. 
-    If the shifted Pauli is contained, add the coefficient. 
-    If not, set the new term in the shifted_psum.
+    _shiftandadd!(psum::PauliSum, pstr::PauliStringType, coeff)
 
-Args:
-    shifted_psum (PauliSum): The PauliSum to merge into.
-    pstr (PauliStringType): The PauliStringType to merge.
-    coeff (Float64): The coefficient of the pstr.
-
-Returns:
-    None
+Merges a `pstr` to an existing `psum` in-place. 
+If the shifted Pauli is contained, add the coefficient, else set the new term in the `psum`.
 """
-function shiftandadd!(
-    shifted_psum::PauliSum,
+function _shiftandadd!(
+    psum::PauliSum,
     pstr::PT,
     coeff
 ) where {PT<:PauliStringType}
-    nq = shifted_psum.nqubits
+    nq = psum.nqubits
 
     if pstr == 0
-        add!(shifted_psum, pstr, coeff)
+        add!(psum, pstr, coeff)
         return
     end
 
@@ -75,53 +68,45 @@ function shiftandadd!(
         pstr = setpauli(pstr, first_pauli, nq)
 
         # if contained, add and break shifting loop
-        if haskey(shifted_psum.terms, pstr)
-            add!(shifted_psum, pstr, coeff)
+        if haskey(psum.terms, pstr)
+            add!(psum, pstr, coeff)
             return
         end
     end
 
-    # symmetric merge failed, append the new term
-    set!(shifted_psum, pstr, coeff)
+    # the shifted Pauli is not contained, append the new term
+    set!(psum, pstr, coeff)
 
     return
 end
 
 
 """
-    Exhaustive symmetric shift and merge of all pstrs in a psum.
-    Shifts the pstr to the right until all possible shifts are found.
+    fullsymmetricshift(psum::PauliSum)
 
-Args:
-    psum (PauliSum): The PauliSum to perform exhaustsive symmetric shift on.
-
-Returns:
-    shifted_psum (PauliSum): The fully merged PauliSum.
+Exhaustive symmetric shift and merge of all pstrs in a `psum` in a system
+with translational symmetry.
 """
 function fullsymmetricshift(psum::PauliSum)
     shifted_psum = PauliPropagation.similar(psum)
+
     for (pstr, coeff) in psum
-        shiftandadd!(shifted_psum, pstr, coeff)
+        _shiftandadd!(shifted_psum, pstr, coeff)
     end
+
     return shifted_psum
 end
 
 
 ## 2D translation
 """
-    Shifts a pstr up one row in a 2D grid of Paulis.
-    This function shifts the entire bitstring up one row, 
-    and sets the first row of Paulis to the last row of the bitstring.
-Args:
-    pstr (PauliStringType): The PauliStringType to shift.
-    nq (Int): The number of qubits in the PauliStringType.
-    nx (Int): The number of Paulis in the x direction.
-    ny (Int): The number of Paulis in the y direction.
-Returns:
-    PauliStringType: The shifted PauliStringType.
-"""
-function shiftup(pstr::PauliStringType, nq, nx, ny)
+    _shiftup(pstr::PauliStringType, nq, nx, ny)
 
+Shifts a `pstr` up one row in a (`nx`, `ny`) 2D grid of `nq` qubits.
+This function shifts the entire bitstring up one row, 
+and sets the first row of Paulis to the last row of the Paulis.
+"""
+function _shiftup(pstr::PauliStringType, nq, nx, ny)
     if pstr == 0
         return pstr
     end
@@ -130,6 +115,7 @@ function shiftup(pstr::PauliStringType, nq, nx, ny)
     if ny < 1 || ny > nq / nx
         throw(ArgumentError("ny must be between 1 and $(nq / nx), but is $ny"))
     end
+
     row_paulis = getpauli(pstr, 1:nx) # get the first row of Paulis
     pstr = pstr >> (2 * nx)  # shift by nx many Paulis
     pstr = setpauli(pstr, row_paulis, (nq-nx+1):nq) 
@@ -139,18 +125,14 @@ function shiftup(pstr::PauliStringType, nq, nx, ny)
 end
 
 """
-    Shifts a pstr up one row in a 2D grid and adds to the shifted_psum in-place.
+    _shiftupandadd!(
+        shifted_psum::PauliSum, pstr::PauliStringType, coeff, nx, ny
+    )
 
-Args:
-    shifted_psum (PauliSum): The PauliSum to merge into.
-    pstr (PauliStringType): The PauliStringType to merge.
-    coeff (Float64): The coefficient of the pstr.
-    nx (Int): The number of Paulis in the x direction.
-    ny (Int): The number of Paulis in the y direction.
-Returns:
-    None
+Shifts a `pstr` up one row in a (`nx`, `ny`) 2D grid of `nq` qubits. 
+Adds the shifted pstr to the `shifted_psum` in-place.
 """
-function shiftupandadd!(
+function _shiftupandadd!(
     shifted_psum::PauliSum,
     pstr::PT,
     coeff,
@@ -166,7 +148,7 @@ function shiftupandadd!(
 
     for _ in 1:ny
         # shift periodically by one row
-        pstr = shiftup(pstr, nq, nx, 1)
+        pstr = _shiftup(pstr, nq, nx, 1)
 
         # if contained, add and break shifting loop
         if haskey(shifted_psum.terms, pstr)
@@ -182,19 +164,15 @@ function shiftupandadd!(
 end
 
 """
-    fullshiftup2d(psum::PauliSum, transform)
-    Merges a PauliSum by shifting all pstrs up in a 2D grid of Paulis.
+    fullshiftup2d(psum::PauliSum, nx::Int, ny::Int)
 
-Args:
-    shifted_psum (PauliSum): The PauliSum to merge into.
-    transform (Function): The function to transform the pstr.
-Returns:
-    shifted_psum (PauliSum): The fully merged PauliSum.    
+Merges a `psum` by shifting all pstrs up in a (`nx`, `ny`) 2D grid of Paulis,
+where `nx` is the number of periodic shifts in the x-direction,
+and `ny` is the number of periodic shifts in the y-direction.
 """
 function fullshiftup2d(psum::PauliSum, nx, ny)
     shifted_psum = PauliPropagation.similar(psum)
 
-    # Check number of qubits
     if shifted_psum.nqubits != nx * ny
         throw(
             ArgumentError("Number of qubits $(shifted_psum.nqubits) does not \n
@@ -204,7 +182,7 @@ function fullshiftup2d(psum::PauliSum, nx, ny)
     end    
 
     for (pstr, coeff) in psum
-        shiftupandadd!(shifted_psum, pstr, coeff, nx, ny)
+        _shiftupandadd!(shifted_psum, pstr, coeff, nx, ny)
     end
 
     return shifted_psum
