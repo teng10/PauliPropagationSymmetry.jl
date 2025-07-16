@@ -1,6 +1,7 @@
 ### symmetries.jl
 ##
 # This file contains functions to merge Pauli strings by symmetries.
+# Currently it supports translational symmetry in 1d and 2d.
 ##
 ###
 
@@ -102,18 +103,14 @@ end
 """
     _shiftup(pstr::PauliStringType, nq, nx, ny)
 
-Shifts a `pstr` up one row in a (`nx`, `ny`) 2D grid of `nq` qubits.
+Shifts a `pstr` up one row in a (`nx`, `ny`) 2D grid of `nq` qubits on a 
+cylindrical lattice.
 This function shifts the entire bitstring up one row, 
 and sets the first row of Paulis to the last row of the Paulis.
 """
 function _shiftup(pstr::PauliStringType, nq, nx, ny)
     if pstr == 0
         return pstr
-    end
-
-    # check that the shift is within max allowed ny
-    if ny < 1 || ny > nq / nx
-        throw(ArgumentError("ny must be between 1 and $(nq / nx), but is $ny"))
     end
 
     row_paulis = getpauli(pstr, 1:nx) # get the first row of Paulis
@@ -129,8 +126,8 @@ end
         shifted_psum::PauliSum, pstr::PauliStringType, coeff, nx, ny
     )
 
-Shifts a `pstr` up one row in a (`nx`, `ny`) 2D grid of `nq` qubits. 
-Adds the shifted pstr to the `shifted_psum` in-place.
+Shifts a `pstr` up one row in a (`nx`, `ny`) 2D grid of `nq` qubits  on a 
+cylindrical lattice. Adds the shifted pstr to the `shifted_psum` in-place.
 """
 function _shiftupandadd!(
     shifted_psum::PauliSum,
@@ -148,7 +145,7 @@ function _shiftupandadd!(
 
     for _ in 1:ny
         # shift periodically by one row
-        pstr = _shiftup(pstr, nq, nx, 1)
+        pstr = _shiftup(pstr, nq, nx, ny)
 
         # if contained, add and break shifting loop
         if haskey(shifted_psum.terms, pstr)
@@ -166,8 +163,8 @@ end
 """
     fullshiftup2d(psum::PauliSum, nx::Int, ny::Int)
 
-Merges a `psum` by shifting all pstrs up in a (`nx`, `ny`) 2D grid of Paulis,
-where `nx` is the number of periodic shifts in the x-direction,
+Merges a `psum` by shifting all pstrs up in a (`nx`, `ny`) 2D grid of Paulis on 
+a cylindrical lattice. `nx` is the number of Paulis in the x-direction,
 and `ny` is the number of periodic shifts in the y-direction.
 """
 function fullshiftup2d(psum::PauliSum, nx, ny)
@@ -187,6 +184,100 @@ function fullshiftup2d(psum::PauliSum, nx, ny)
 
     return shifted_psum
 end
+
+
+"""
+    _shiftleft(pstr::PauliStringType, nq, nx, ny)
+
+Shifts a `pstr` left one column in a (`nx`, `ny`) 2D grid of `nq` qubits.
+This function shifts the entire bitstring left one column, 
+and sets the first column of Paulis to the last column of the Paulis.
+"""
+function _shiftleft(pstr::PauliStringType, nq, nx, ny)
+    if pstr == 0
+        return pstr
+    end
+
+    col_paulis = getpauli(pstr, 1:nx:nq) # get the first column of Paulis
+    pstr = pstr >> 2
+    pstr = setpauli(pstr, col_paulis, nx:nx:nq) 
+
+    return pstr
+end
+
+
+"""
+    _shift2dandadd!(
+        shifted_psum::PauliSum, pstr::PauliStringType, coeff, nx, ny
+    )
+
+Shifts a `pstr` up one row in a (`nx`, `ny`) 2D grid of `nq` qubits  on a 
+cylinder. Adds the shifted pstr to the `shifted_psum` in-place.
+"""
+function _shift2dandadd!(
+    shifted_psum::PauliSum,
+    pstr::PT,
+    coeff,
+    nx,
+    ny
+) where {PT<:PauliStringType}
+    nq = shifted_psum.nqubits
+
+    if pstr == 0
+        add!(shifted_psum, pstr, coeff)
+        return
+    end
+
+    for _ in 1:ny
+        # shift periodically by one row
+        pstr = _shiftup(pstr, nq, nx, ny)
+
+        for _ in 1:nx
+            # shift periodically by one column
+            pstr = _shiftleft(pstr, nq, nx, ny)
+            
+            # if contained, add and break shifting loop
+            if haskey(shifted_psum.terms, pstr)
+                add!(shifted_psum, pstr, coeff)
+                return
+            end
+
+        end
+
+    end
+
+    # symmetric merge failed, append the new term
+    set!(shifted_psum, pstr, coeff)
+
+    return
+end
+
+"""
+    fullshift2d(psum::PauliSum, nx::Int, ny::Int)
+
+Merges a `psum` by shifting all pstrs in a (`nx`, `ny`) 2D grid of Paulis on 
+a torus. `nx` is the number of periodic shifts in the x-direction,
+and `ny` is the number of periodic shifts in the y-direction.
+"""
+function fullshift2d(psum::PauliSum, nx, ny)
+    shifted_psum = PauliPropagation.similar(psum)
+
+    if shifted_psum.nqubits != nx * ny
+        throw(
+            ArgumentError("Number of qubits $(shifted_psum.nqubits) does not \n
+                match grid size $(nx) x $(ny)"
+            )
+        )
+    end    
+
+    for (pstr, coeff) in psum
+
+        _shift2dandadd!(shifted_psum, pstr, coeff, nx, ny)
+    end
+
+    return shifted_psum
+end
+
 
 ## visualization tool for 2D
 function PauliPropagation.inttostring(pstr::PauliStringType, nx, ny)

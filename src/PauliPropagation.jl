@@ -157,5 +157,6 @@ include("Symmetry/Symmetry.jl")
 export
     greedysymmetricshift,
     fullsymmetricshift, 
-    fullshiftup2d
+    fullshiftup2d,
+    fullshift2d
 end
