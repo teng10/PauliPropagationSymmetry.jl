@@ -40,6 +40,7 @@ export
     pauliprod,
     commutes,
     commutator,
+    trace,
     convertcoefftype,
     getinttype
 
