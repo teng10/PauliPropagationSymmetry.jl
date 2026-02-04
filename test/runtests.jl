@@ -6,6 +6,8 @@ using Random
 
     include("test_propagate.jl")
 
+    include("test_schrodinger.jl")
+
     include("test_datatypes.jl")
 
     include("test_paulialgebra_utils.jl")
@@ -23,6 +25,8 @@ using Random
     include("test_overlaps.jl")
 
     include("test_paulirotations.jl")
+
+    include("test_imaginary.jl")
 
     include("test_paulioperations.jl")
 
